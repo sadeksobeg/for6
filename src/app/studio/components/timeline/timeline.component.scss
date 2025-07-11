@@ -1,0 +1,469 @@
+.timeline-root {
+  background: #2A2A2A;
+  padding: 12px 0;
+}
+.timeline-track {
+  position: relative;
+  min-height: 48px;
+  margin-bottom: 8px;
+  background: #222;
+  border-radius: 6px;
+  border: 1px solid #333;
+  transition: background 0.2s;
+}
+.timeline-track.drop-hover {
+  background: #3E3E3E;
+}
+.track-header {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 100%;
+  background: #333;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px 0 0 6px;
+  z-index: 2;
+}
+.track-clips {
+  margin-left: 56px;
+  position: relative;
+  height: 48px;
+}
+.clip-bar {
+  position: absolute;
+  top: 8px;
+  height: 32px;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+  opacity: 1;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #222;
+  background: #d6eaff;
+}
+.clip-bar.ghost {
+  opacity: 0.5;
+  pointer-events: none;
+  border: 2px dashed #aaa;
+  background: #fff8;
+}
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #2b2b2b;
+  color: #ffffff;
+  overflow: hidden;
+  position: relative;
+}
+
+.timeline-header {
+  display: flex;
+  flex-direction: column;
+  background: #3c3c3c;
+  border-bottom: 1px solid #555;
+  z-index: 10;
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 12px;
+  border-bottom: 1px solid #555;
+  
+  .btn {
+    background: #4a4a4a;
+    border: 1px solid #666;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: #5a5a5a;
+    }
+    
+    .icon-plus::before {
+      content: '+';
+      margin-right: 4px;
+    }
+  }
+  
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    
+    .btn {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .zoom-level {
+      font-size: 11px;
+      color: #ccc;
+      min-width: 40px;
+      text-align: center;
+    }
+  }
+}
+
+.time-ruler {
+  position: relative;
+  height: 30px;
+  background: #333;
+  border-bottom: 1px solid #555;
+  margin-left: 200px; // Account for track headers
+  overflow: hidden;
+  
+  .time-marker {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    
+    .time-label {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 10px;
+      color: #ccc;
+      font-family: monospace;
+    }
+    
+    .marker-line {
+      position: absolute;
+      left: 0;
+      top: 20px;
+      width: 1px;
+      height: 10px;
+      background: #666;
+    }
+  }
+}
+
+.timeline-tracks {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  
+  &::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #2b2b2b;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 6px;
+    
+    &:hover {
+      background: #666;
+    }
+  }
+}
+
+.track {
+  display: flex;
+  border-bottom: 1px solid #444;
+  position: relative;
+  
+  &.video-track {
+    background: #2e2e2e;
+  }
+  
+  &.audio-track {
+    background: #2a2a2a;
+  }
+}
+
+.track-header {
+  width: 200px;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #3c3c3c;
+  border-right: 1px solid #555;
+  flex-shrink: 0;
+  
+  .track-controls {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+    
+    .track-btn {
+      width: 20px;
+      height: 20px;
+      background: transparent;
+      border: 1px solid #666;
+      color: #ccc;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: #4a4a4a;
+      }
+      
+      &.active {
+        background: #ff6b6b;
+        border-color: #ff6b6b;
+        color: white;
+      }
+      
+      &.mute.active {
+        background: #ff6b6b;
+      }
+      
+      &.lock.active {
+        background: #ffa500;
+      }
+      
+      &.hide.active {
+        background: #666;
+      }
+    }
+  }
+  
+  .track-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+  }
+}
+
+.track-content {
+  flex: 1;
+  position: relative;
+  min-height: 50px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49px,
+    #333 49px,
+    #333 50px
+  );
+}
+
+.clip {
+  position: absolute;
+  top: 4px;
+  height: 42px;
+  border-radius: 4px;
+  cursor: grab;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all 0.1s;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  &.selected {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+  }
+  
+  &:active {
+    cursor: grabbing;
+  }
+  
+  &.video-clip {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: white;
+  }
+  
+  &.audio-clip {
+    background: linear-gradient(135deg, #5cb85c, #449d44);
+    color: white;
+  }
+}
+
+.clip-thumbnail {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 34px;
+  height: 34px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.clip-content {
+  position: absolute;
+  left: 42px;
+  top: 4px;
+  right: 4px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  
+  .clip-name {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  
+  .clip-duration {
+    font-size: 9px;
+    opacity: 0.8;
+    font-family: monospace;
+  }
+}
+
+.waveform {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  right: 4px;
+  height: 34px;
+  display: flex;
+  align-items: end;
+  gap: 1px;
+  
+  .waveform-bar {
+    background: rgba(255, 255, 255, 0.8);
+    width: 1px;
+    min-height: 2px;
+    border-radius: 0.5px;
+  }
+}
+
+.clip-handles {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  
+  .handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: ew-resize;
+    pointer-events: all;
+    opacity: 0;
+    transition: opacity 0.2s;
+    
+    &.left {
+      left: 0;
+      border-radius: 4px 0 0 4px;
+    }
+    
+    &.right {
+      right: 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+  }
+}
+
+.clip:hover .handle {
+  opacity: 1;
+}
+
+.playhead {
+  position: absolute;
+  top: 30px; // Below time ruler
+  width: 2px;
+  z-index: 100;
+  pointer-events: none;
+  margin-left: 200px; // Account for track headers
+  
+  .playhead-line {
+    width: 2px;
+    height: 100%;
+    background: #ff4444;
+    box-shadow: 0 0 4px rgba(255, 68, 68, 0.5);
+  }
+  
+  .playhead-handle {
+    position: absolute;
+    top: -8px;
+    left: -6px;
+    width: 14px;
+    height: 16px;
+    background: #ff4444;
+    border-radius: 2px;
+    cursor: grab;
+    pointer-events: all;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    
+    &:active {
+      cursor: grabbing;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #ff4444;
+    }
+  }
+}
+
+// Drag and drop styles
+.cdk-drag-preview {
+  background: rgba(74, 144, 226, 0.9);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: rotate(2deg);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+  background: rgba(74, 144, 226, 0.2);
+  border: 2px dashed #4a90e2;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .clip:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}

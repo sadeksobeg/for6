@@ -1,0 +1,289 @@
+<div class="media-list-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">Media Library</h1>
+      <p class="page-subtitle">Manage your video files and media assets</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="navigateToCreateMedia()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+        </svg>
+        Add New Media
+      </button>
+      <button class="btn btn-secondary" (click)="refreshMediaList()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Search media files..." 
+          [(ngModel)]="searchQuery"
+          (input)="onSearchChange()"
+          class="search-input"
+        />
+      </div>
+      <div class="filter-controls">
+        <select class="filter-select" [(ngModel)]="selectedLanguageFilter" (change)="applyFilters()">
+          <option value="">All Languages</option>
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+        </select>
+        <select class="filter-select" [(ngModel)]="selectedProjectFilter" (change)="applyFilters()">
+          <option value="">All Projects</option>
+          <option *ngFor="let project of projects" [value]="project.id">{{ project.title }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading media files...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredVideos.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+      </svg>
+    </div>
+    <h3>No Media Files Found</h3>
+    <p>Start by uploading your first video file to get started.</p>
+    <button class="btn btn-primary" (click)="navigateToCreateMedia()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+      </svg>
+      Add Your First Media
+    </button>
+  </div>
+
+  <!-- Media Grid -->
+  <div *ngIf="!isLoading && filteredVideos.length > 0" class="media-grid">
+    <div *ngFor="let media of filteredVideos; trackBy: trackByMediaId" class="media-card">
+      <!-- Video Thumbnail -->
+      <div class="media-thumbnail" (click)="viewMedia(media)">
+        <video 
+          *ngIf="media.video && media.video.trim() !== ''" 
+          [src]="media.video" 
+          preload="metadata" 
+          muted
+          crossorigin="anonymous"
+          class="thumbnail-video"
+          (error)="onVideoThumbnailError($event, media)"
+          (loadedmetadata)="onThumbnailLoaded($event)"
+          (loadedmetadata)="onThumbnailLoaded($event)"
+        ></video>
+        <div *ngIf="!media.video || media.video.trim() === ''" class="no-video-thumbnail">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+          </svg>
+          <span>No Video</span>
+        </div>
+        <div class="play-overlay">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+          </svg>
+        </div>
+        <div class="media-duration" *ngIf="media.duration">
+          {{ formatDuration(media.duration) }}
+        </div>
+      </div>
+
+      <!-- Media Info -->
+      <div class="media-info">
+        <h3 class="media-title" [title]="media.title">{{ media.title }}</h3>
+        <p class="media-description" *ngIf="media.description" [title]="media.description">
+          {{ media.description }}
+        </p>
+        
+        <!-- Media Metadata -->
+        <div class="media-metadata">
+          <div class="metadata-row" *ngIf="media.sourceLanguage">
+            <span class="metadata-label">Source:</span>
+            <span class="language-tag">{{ getLanguageName(media.sourceLanguage) }}</span>
+          </div>
+          <div class="metadata-row" *ngIf="media.destinationLanguage">
+            <span class="metadata-label">Target:</span>
+            <span class="language-tag">{{ getLanguageName(media.destinationLanguage) }}</span>
+          </div>
+          <div class="metadata-row" *ngIf="media.countryDialect">
+            <span class="metadata-label">Dialect:</span>
+            <span class="dialect-tag">{{ media.countryDialect }}</span>
+          </div>
+          <div class="metadata-row" *ngIf="media.creationTime">
+            <span class="metadata-label">Created:</span>
+            <span class="date-tag">{{ formatDate(media.creationTime) }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="media-actions">
+          <button class="action-btn primary" (click)="viewMedia(media)" title="View Details">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+            </svg>
+            View
+          </button>
+          <button class="action-btn secondary" (click)="downloadVideo(media)" title="Download Video">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+            </svg>
+            Download
+          </button>
+          <button class="action-btn secondary" (click)="editMedia(media)" title="Edit Media">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+            </svg>
+            Edit
+          </button>
+          <button class="action-btn danger" (click)="deleteMedia(media.id)" title="Delete Media">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load More Button -->
+  <div *ngIf="!isLoading && filteredVideos.length > 0 && hasMoreItems" class="load-more-container">
+    <button class="btn btn-outline" (click)="loadMore()" [disabled]="isLoadingMore">
+      <span *ngIf="!isLoadingMore">Load More</span>
+      <span *ngIf="isLoadingMore">Loading...</span>
+    </button>
+  </div>
+</div>
+
+<!-- Video Details Modal -->
+<div class="video-modal" [class.active]="showVideoModal" (click)="closeVideoModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ selectedMedia?.title }}</h2>
+      <button class="close-btn" (click)="closeVideoModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Video Player -->
+      <div class="video-player-container">
+        <div *ngIf="isVideoLoading" class="video-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading video...</p>
+        </div>
+        
+        <div *ngIf="videoError" class="video-error">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V19H19V9Z"/>
+          </svg>
+          <h3>Video Error</h3>
+          <p>{{ videoErrorMessage }}</p>
+          <button class="btn btn-primary" (click)="testWithSampleVideo()">Test with Sample Video</button>
+        </div>
+        
+        <video 
+          *ngIf="!isVideoLoading && !videoError && videoUrl" 
+          [src]="videoUrl" 
+          controls 
+          crossorigin="anonymous"
+          class="modal-video-player"
+          (loadstart)="onVideoLoadStart()"
+          (canplay)="onVideoCanPlay()"
+          (loadedmetadata)="onVideoLoaded($event)"
+          (error)="onVideoError($event)"
+          preload="metadata"
+        ></video>
+      </div>
+
+      <!-- Video Information -->
+      <div class="video-details">
+        <div class="details-section">
+          <h3>Video Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Title:</span>
+              <span class="detail-value">{{ selectedMedia?.title }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedMedia?.description">
+              <span class="detail-label">Description:</span>
+              <span class="detail-value">{{ selectedMedia?.description }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedMedia?.sourceLanguage">
+              <span class="detail-label">Source Language:</span>
+              <span class="detail-value">{{ getLanguageName(selectedMedia?.sourceLanguage) }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedMedia?.destinationLanguage">
+              <span class="detail-label">Target Language:</span>
+              <span class="detail-value">{{ getLanguageName(selectedMedia?.destinationLanguage) }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedMedia?.countryDialect">
+              <span class="detail-label">Country Dialect:</span>
+              <span class="detail-value">{{ selectedMedia?.countryDialect }}</span>
+            </div>
+            <div class="detail-item" *ngIf="videoMetadata.duration">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ formatDuration(videoMetadata.duration) }}</span>
+            </div>
+            <div class="detail-item" *ngIf="videoMetadata.resolution">
+              <span class="detail-label">Resolution:</span>
+              <span class="detail-value">{{ videoMetadata.resolution }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedMedia?.creationTime">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">{{ formatDate(selectedMedia?.creationTime) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debug Information (for development) -->
+        <div class="debug-section" *ngIf="selectedMedia">
+          <h4>Debug Information</h4>
+          <div class="debug-info">
+            <p><strong>Media ID:</strong> {{ selectedMedia.id }}</p>
+            <p><strong>Video URL:</strong> {{ selectedMedia.video || 'Not available' }}</p>
+            <p><strong>URL Type:</strong> {{ getUrlType(selectedMedia.video) }}</p>
+            <p><strong>Project ID:</strong> {{ selectedMedia.projectId || 'Not assigned' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="closeVideoModal()">Close</button>
+      <button class="btn btn-primary" (click)="downloadVideo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+        </svg>
+        Download Video
+      </button>
+      <button class="btn btn-primary" (click)="editSelectedMedia()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+        </svg>
+        Edit Media
+      </button>
+    </div>
+  </div>
+</div>

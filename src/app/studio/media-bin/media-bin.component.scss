@@ -1,0 +1,144 @@
+.media-bin-container {
+  padding: 10px;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  border-radius: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+  
+  h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.2rem;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.import-button,
+.refresh-button {
+  background-color: #444;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #555;
+  }
+  
+  i::before {
+    font-size: 0.9rem;
+  }
+}
+
+.icon-upload::before { content: '📁'; }
+.icon-refresh::before { content: '🔄'; }
+
+.media-list {
+  list-style: none;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.media-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #222;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #333;
+  }
+}
+
+.media-thumbnail {
+  width: 60px;
+  height: 40px;
+  margin-right: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.media-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.media-title {
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.media-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+  background-color: transparent;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #444;
+    border-color: #666;
+  }
+}
+
+.edit-button:hover {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.delete-button:hover {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.no-media-message {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 40px 20px;
+}

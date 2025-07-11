@@ -1,0 +1,52 @@
+  <div *ngFor="let track of timeline.videoTracks" 
+       class="timeline-track" 
+       [class.drop-hover]="dragOverTrackId === track.id"
+       (dragover)="onTrackDragOver($event, track)"
+       (dragleave)="onTrackDragLeave($event, track)"
+       (drop)="onDrop($event, track)">
+    <div class="track-header">{{ track.id }}</div>
+    <div class="track-clips">
+      <div *ngFor="let clip of track.clips" 
+           class="clip-bar" 
+           [style.left.%]="(clip.start / timeline.duration) * 100"
+           [style.width.%]="(clip.duration / timeline.duration) * 100"
+           [style.background]="clip.color || '#d6eaff'">
+        {{ clip.name }}
+      </div>
+      <!-- Ghost Clip -->
+      <div *ngIf="ghostClip && ghostClip.trackId === track.id"
+           class="clip-bar ghost"
+           [style.left.%]="(ghostClip.start / timeline.duration) * 100"
+           [style.width.%]="(ghostClip.duration / timeline.duration) * 100"
+           [style.background]="ghostClip.color">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="timeline-root">
+  <div *ngFor="let track of timeline.videoTracks" 
+       class="timeline-track" 
+       [class.drop-hover]="dragOverTrackId === track.id"
+       (dragover)="onTrackDragOver($event, track)"
+       (dragleave)="onTrackDragLeave($event, track)"
+       (drop)="onDrop($event, track)">
+    <div class="track-header">{{ track.id }}</div>
+    <div class="track-clips">
+      <div *ngFor="let clip of track.clips" 
+           class="clip-bar" 
+           [style.left.%]="(clip.start / timeline.duration) * 100"
+           [style.width.%]="(clip.duration / timeline.duration) * 100"
+           [style.background]="clip.color || '#d6eaff'">
+        {{ clip.name }}
+      </div>
+      <!-- Ghost Clip -->
+      <div *ngIf="ghostClip && ghostClip.trackId === track.id"
+           class="clip-bar ghost"
+           [style.left.%]="(ghostClip.start / timeline.duration) * 100"
+           [style.width.%]="(ghostClip.duration / timeline.duration) * 100"
+           [style.background]="ghostClip.color">
+      </div>
+    </div>
+  </div>
+</div>

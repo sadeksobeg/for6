@@ -1,0 +1,35 @@
+<div class="project-list-container">
+    <div class="header">
+      <h2>Project List</h2>
+      <button class="btn create-btn" (click)="createProject()">Create New Project</button>
+    </div>
+  
+    <!-- Display a message when no projects exist -->
+    <div *ngIf="projects.length === 0" class="no-projects-message">
+      No projects found.
+    </div>
+  
+    <!-- Display list of projects in a card layout -->
+    <div *ngIf="projects.length > 0" class="projects-grid">
+      <div *ngFor="let project of projects" class="project-card">
+        <div class="card-content">
+          <h3 class="project-title">{{ project.title }}</h3>
+          <p class="project-description">{{ project.description }}</p>
+        </div>
+        <div class="card-footer">
+          <span class="project-status">Status: {{ project.status }}</span>
+          <div class="actions">
+            <button class="btn edit-btn" (click)="navigateToEdit(project.id)">Edit</button>
+            <button class="btn view-btn" (click)="viewProject(project)">View</button>
+            <button class="btn delete-btn" (click)="deleteProject(project.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Load more button -->
+    <div class="load-more-container" *ngIf="projects.length > 0">
+      <button class="btn load-more-btn" (click)="loadMore()">Load More</button>
+    </div>
+  </div>
+  

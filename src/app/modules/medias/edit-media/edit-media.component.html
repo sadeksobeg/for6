@@ -1,0 +1,140 @@
+<div class="edit-media-container">
+  <h2>Edit Media</h2>
+  
+  <div *ngIf="isLoadingMedia" class="loading-container">
+    <div class="spinner-large"></div>
+    <p>Loading media...</p>
+  </div>
+
+  <form *ngIf="!isLoadingMedia" (ngSubmit)="update()" #mediaForm="ngForm">
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        [(ngModel)]="media.title"
+        required
+        class="form-control"
+        placeholder="Enter media title"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        name="description"
+        [(ngModel)]="media.description"
+        class="form-control"
+        rows="3"
+        placeholder="Enter media description (optional)"
+      ></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="projectId">Project *</label>
+      <div class="project-select-container">
+        <select
+          id="projectId"
+          name="projectId"
+          [(ngModel)]="media.projectId"
+          required
+          class="form-control"
+          (change)="onProjectChange()"
+          [disabled]="isLoadingProjects"
+        >
+          <option value="" disabled>
+            {{ isLoadingProjects ? 'Loading projects...' : 'Select a project' }}
+          </option>
+          <option *ngFor="let project of projects" [value]="project.id">
+            {{ project.title }}
+            <span *ngIf="project.description"> - {{ project.description }}</span>
+          </option>
+        </select>
+        <div class="loading-indicator" *ngIf="isLoadingProjects">
+          <i class="spinner"></i>
+        </div>
+      </div>
+      <small class="form-text text-muted" *ngIf="projects.length === 0 && !isLoadingProjects">
+        No projects found. <a href="/projects/create" target="_blank">Create a new project</a> first.
+      </small>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half-width">
+        <label for="sourceLanguage">Source Language</label>
+        <select
+          id="sourceLanguage"
+          name="sourceLanguage"
+          [(ngModel)]="media.sourceLanguage"
+          class="form-control"
+        >
+          <option value="">Select source language</option>
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
+          <option value="ru">Russian</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="zh">Chinese</option>
+          <option value="ar">Arabic</option>
+          <option value="hi">Hindi</option>
+        </select>
+      </div>
+
+      <div class="form-group half-width">
+        <label for="destinationLanguage">Destination Language</label>
+        <select
+          id="destinationLanguage"
+          name="destinationLanguage"
+          [(ngModel)]="media.destinationLanguage"
+          class="form-control"
+        >
+          <option value="">Select destination language</option>
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
+          <option value="ru">Russian</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="zh">Chinese</option>
+          <option value="ar">Arabic</option>
+          <option value="hi">Hindi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="countryDialect">Country Dialect</label>
+      <input
+        type="text"
+        id="countryDialect"
+        name="countryDialect"
+        [(ngModel)]="media.countryDialect"
+        class="form-control"
+        placeholder="e.g., US, UK, AU (optional)"
+      />
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="router.navigate(['/media'])">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        class="btn submit-btn"
+        [disabled]="!mediaForm.form.valid || isLoadingProjects"
+      >
+        <span *ngIf="!isLoadingProjects">Update Media</span>
+        <span *ngIf="isLoadingProjects">Loading...</span>
+      </button>
+    </div>
+  </form>
+</div>

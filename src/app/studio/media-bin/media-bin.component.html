@@ -1,0 +1,31 @@
+<div class="media-bin-container">
+  <div class="header">
+    <h3>Media Bin</h3>
+    <div class="header-actions">
+      <input type="file" #fileInput style="display: none;" (change)="handleMediaUpload($event)" accept="video/*,image/*,audio/*">
+      <button class="import-button" (click)="fileInput.click()">
+        <i class="icon-upload"></i>
+        Import Media
+      </button>
+      <button class="refresh-button" (click)="refreshMediaList()">
+        <i class="icon-refresh"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+  <ul class="media-list">
+    <li *ngIf="mediaItems.length === 0" class="no-media-message">No media items yet. Import some!</li>
+    <li *ngFor="let media of mediaItems; trackBy: trackByMediaId" class="media-item" (click)="onMediaClick(media)">
+      <div class="media-thumbnail">
+        <img [src]="media.video || 'assets/images/placeholders/100x50.png'" alt="{{ media.title }}" />
+      </div>
+      <div class="media-info">
+        <span class="media-title">{{ media.title }}</span>
+        <div class="media-actions">
+          <button class="edit-button" (click)="editMedia(media); $event.stopPropagation()">Edit</button>
+          <button class="delete-button" (click)="deleteMedia(media.id); $event.stopPropagation()">Delete</button>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>

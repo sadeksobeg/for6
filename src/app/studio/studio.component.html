@@ -1,0 +1,126 @@
+<div class="shotcut-studio">
+  <!-- Top Menu Bar -->
+  <div class="menu-bar">
+    <div class="menu-left">
+      <div class="app-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8,5.14V19.14L19,12.14L8,5.14Z"/>
+        </svg>
+        <span>Professional Video Studio</span>
+      </div>
+      
+      <div class="menu-items">
+        <button class="menu-btn">File</button>
+        <button class="menu-btn">Edit</button>
+        <button class="menu-btn">View</button>
+        <button class="menu-btn">Timeline</button>
+        <button class="menu-btn">Filters</button>
+        <button class="menu-btn">Settings</button>
+        <button class="menu-btn" (click)="toggleApiConsole()">API Console</button>
+      </div>
+    </div>
+    
+    <div class="menu-center">
+      <div class="project-name">{{ projectName }}</div>
+    </div>
+    
+    <div class="menu-right">
+      <button class="menu-btn" (click)="saveProject()">Save</button>
+      <button class="menu-btn export-btn" (click)="exportProject()">Export</button>
+      <button class="menu-btn" (click)="toggleFullscreen()">
+        <i class="icon-fullscreen"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="studio-content">
+    <!-- Left Panel - Media Bin -->
+    <div class="left-panel">
+      <app-media-bin></app-media-bin>
+    </div>
+
+    <!-- Center Panel - Preview -->
+    <div class="center-panel">
+      <app-preview></app-preview>
+    </div>
+
+    <!-- Right Panel - Properties (Optional) -->
+    <div class="right-panel">
+      <!-- API Console or Timeline Visualizer -->
+      <div class="panel-tabs">
+        <button 
+          class="tab-btn"
+          [class.active]="activeRightPanel === 'visualizer'"
+          (click)="activeRightPanel = 'visualizer'"
+        >
+          Timeline
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="activeRightPanel === 'console'"
+          (click)="activeRightPanel = 'console'"
+        >
+          API Console
+        </button>
+      </div>
+      
+      <div class="panel-content">
+        <app-timeline-visualizer *ngIf="activeRightPanel === 'visualizer'"></app-timeline-visualizer>
+        <!-- Media List Panel -->
+        <div *ngIf="activeRightPanel === 'console'" class="media-list-panel">
+          <h3>My Videos</h3>
+          <div class="media-panel">
+            <div class="media-card"
+                 *ngFor="let media of mediaList"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, media)">
+              <img *ngIf="media.thumbnailUrl" [src]="media.thumbnailUrl" alt="" />
+              <div>{{media.title || media.filename || media.id}} ({{media.duration | number:'1.1-1'}}s)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Panel - Timeline -->
+  <div class="bottom-panel">
+    <div class="timeline">
+      <div *ngFor="let track of timeline.videoTracks"
+           class="track"
+           [class.drag-over]="dragOverTrackId === track.id"
+           (dragover)="onTrackDragOver($event, track)"
+           (dragleave)="onTrackDragLeave($event, track)"
+           (drop)="onDrop($event, track)">
+        <div class="track-header">{{track.id}}</div>
+        <div class="track-spine" #spine>
+          <!-- ghost preview bar -->
+          <div *ngIf="ghostClip && ghostClip.trackId === track.id"
+               class="clip ghost"
+               [style.left.%]="(ghostClip.start / timeline.duration) * 100"
+               [style.width.%]="(ghostClip.duration / timeline.duration) * 100">
+          </div>
+          <!-- real clips -->
+          <div *ngFor="let clip of track.clips"
+               class="clip"
+               [style.left.%]="(clip.start / timeline.duration) * 100"
+               [style.width.%]="(clip.duration / timeline.duration) * 100"
+               [style.background]="clip.color">
+            {{ clip.name }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for imports -->
+  <input 
+    type="file" 
+    #fileInput 
+    style="display: none;" 
+    accept="video/*,audio/*,image/*" 
+    multiple
+    (change)="handleFileImport($event)"
+  />
+</div>

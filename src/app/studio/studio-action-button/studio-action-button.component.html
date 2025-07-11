@@ -1,0 +1,18 @@
+<button class="studio-action-button"
+        [disabled]="disabled"
+        [class.active]="active"
+        [class.disabled]="disabled"
+        [style.--accent-color]="accentColor"
+        [attr.aria-label]="computedAriaLabel"
+        [@buttonState]="animationState"
+        (mouseenter)="onMouseEnter()"
+        (mouseleave)="onMouseLeave()"
+        (click)="onClick()"
+        tabindex="0">
+  
+  <div class="studio-action-button__icon" [innerHTML]="getIconSvg()"></div>
+  
+  <span class="studio-action-button__label">
+    {{ label }}
+  </span>
+</button>
