@@ -1,0 +1,108 @@
+<div class="video-studio">
+  <!-- Top Toolbar -->
+  <mat-toolbar class="studio-toolbar" color="primary">
+    <div class="toolbar-left">
+      <mat-icon class="studio-logo">movie</mat-icon>
+      <span class="studio-title">Professional Video Studio</span>
+      <span class="project-name" *ngIf="currentProject">- {{ currentProject.name }}</span>
+    </div>
+    
+    <div class="toolbar-center">
+      <div class="playback-controls">
+        <button mat-icon-button (click)="previousFrame()" matTooltip="Previous Frame" [disabled]="ffmpegLoading">
+          <mat-icon>skip_previous</mat-icon>
+        </button>
+        <button mat-icon-button (click)="togglePlayback()" matTooltip="Play/Pause" [disabled]="ffmpegLoading">
+          <mat-icon>{{ playbackState?.isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+        <button mat-icon-button (click)="nextFrame()" matTooltip="Next Frame" [disabled]="ffmpegLoading">
+          <mat-icon>skip_next</mat-icon>
+        </button>
+        <button mat-icon-button (click)="stop()" matTooltip="Stop" [disabled]="ffmpegLoading">
+          <mat-icon>stop</mat-icon>
+        </button>
+      </div>
+      
+      <div class="timecode-display">
+        {{ formatTime(playbackState?.currentTime || 0) }}
+      </div>
+    </div>
+    
+    <div class="toolbar-right">
+      <button mat-icon-button [matMenuTriggerFor]="fileMenu" matTooltip="File Menu">
+        <mat-icon>folder</mat-icon>
+      </button>
+      <button mat-icon-button (click)="saveProject()" matTooltip="Save Project">
+        <mat-icon>save</mat-icon>
+      </button>
+      <button mat-raised-button color="accent" (click)="openExportDialog()" matTooltip="Export Video" [disabled]="ffmpegLoading">
+        <mat-icon>file_download</mat-icon>
+        Export
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <!-- File Menu -->
+  <mat-menu #fileMenu="matMenu">
+    <button mat-menu-item (click)="newProject()">
+      <mat-icon>add</mat-icon>
+      <span>New Project</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="saveProject()">
+      <mat-icon>save</mat-icon>
+      <span>Save Project</span>
+    </button>
+  </mat-menu>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="ffmpegLoading">
+    <div class="loading-content">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading video processing engine...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="studio-content">
+    <!-- Left Panel - Media Library -->
+    <div class="left-panel">
+      <app-media-library></app-media-library>
+    </div>
+
+    <!-- Center Panel - Preview -->
+    <div class="center-panel">
+      <app-video-preview></app-video-preview>
+    </div>
+  </div>
+
+  <!-- Bottom Panel - Timeline -->
+  <div class="bottom-panel">
+    <app-timeline></app-timeline>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span class="status-item">
+        Duration: {{ formatTime(currentProject?.duration || 0) }}
+      </span>
+      <span class="status-item">
+        FPS: {{ currentProject?.fps || 30 }}
+      </span>
+      <span class="status-item">
+        Resolution: {{ currentProject?.resolution?.width || 1920 }}x{{ currentProject?.resolution?.height || 1080 }}
+      </span>
+    </div>
+    
+    <div class="status-right">
+      <span class="status-item">
+        Zoom: {{ (timelineState?.zoom || 1) * 100 | number:'1.0-0' }}%
+      </span>
+      <span class="status-item" [class.active]="timelineState?.snapToGrid">
+        <mat-icon class="status-icon">grid_on</mat-icon>
+        Snap
+      </span>
+    </div>
+  </div>
+</div>

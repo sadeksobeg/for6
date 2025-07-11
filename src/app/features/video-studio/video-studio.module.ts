@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
@@ -25,20 +24,27 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { VideoStudioRoutingModule } from './video-studio-routing.module';
+import { VideoStudioComponent } from './video-studio.component';
+import { TimelineComponent } from './components/timeline/timeline.component';
+import { MediaLibraryComponent } from './components/media-library/media-library.component';
+import { VideoPreviewComponent } from './components/video-preview/video-preview.component';
+import { ExportDialogComponent } from './components/export-dialog/export-dialog.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    VideoStudioComponent,
+    TimelineComponent,
+    MediaLibraryComponent,
+    VideoPreviewComponent,
+    ExportDialogComponent
   ],
   imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     DragDropModule,
-    AppRoutingModule,
+    VideoStudioRoutingModule,
     
     // Material Design modules
     MatToolbarModule,
@@ -60,8 +66,6 @@ import { AppComponent } from './app.component';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatDividerModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+  ]
 })
-export class AppModule { }
+export class VideoStudioModule { }
