@@ -1,4 +1,42 @@
 /* You can add global styles to this file, and also import other style files */
+@import '@angular/material/theming';
+
+// Include the common styles for Angular Material
+@include mat-core();
+
+// Define custom theme colors
+$primary-palette: mat-palette($mat-blue, 700);
+$accent-palette: mat-palette($mat-orange, 500);
+$warn-palette: mat-palette($mat-red, 500);
+
+// Create the theme object
+$custom-theme: mat-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette,
+  )
+));
+
+// Include theme styles for core and each component used in your app
+@include angular-material-theme($custom-theme);
+
+// Dark theme for video editor
+$dark-primary: mat-palette($mat-blue, 400);
+$dark-accent: mat-palette($mat-orange, 400);
+$dark-warn: mat-palette($mat-red, 400);
+
+$dark-theme: mat-dark-theme((
+  color: (
+    primary: $dark-primary,
+    accent: $dark-accent,
+    warn: $dark-warn,
+  )
+));
+
+.dark-theme {
+  @include angular-material-color($dark-theme);
+}
 
 @keyframes donut-spin {
   0% {
@@ -8,10 +46,12 @@
     transform: rotate(360deg);
   }
 }
+
 :root {
   --lpx-logo: url('/assets/images/logo/logo-light.png');
   --lpx-logo-icon: url('/assets/images/logo/logo-light-thumbnail.png');
 }
+
 .donut {
   display: inline-block;
   border: 4px solid rgba(0, 0, 0, 0.1);
@@ -55,4 +95,143 @@
   width: 20px;
   height: 20px;
   background-image: url('/assets/images/getting-started/x.svg');
+}
+
+// Global styles for video editor
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+// Custom scrollbar styles
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2b2b2b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+// Material Design overrides for dark theme
+.mat-mdc-card {
+  background: #3c3c3c;
+  color: white;
+}
+
+.mat-mdc-form-field {
+  .mat-mdc-form-field-outline {
+    color: #666;
+  }
+  
+  .mat-mdc-form-field-outline-thick {
+    color: #2196f3;
+  }
+  
+  .mat-mdc-form-field-label {
+    color: #b0b0b0;
+  }
+  
+  .mat-mdc-input-element {
+    color: white;
+  }
+}
+
+.mat-mdc-select-value {
+  color: white;
+}
+
+.mat-mdc-option {
+  color: white;
+  background: #3c3c3c;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &.mat-mdc-option-active {
+    background: rgba(33, 150, 243, 0.2);
+  }
+}
+
+.mat-mdc-select-panel {
+  background: #3c3c3c;
+}
+
+// Utility classes
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+.gap-24 {
+  gap: 24px;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.p-8 {
+  padding: 8px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+.p-24 {
+  padding: 24px;
 }

@@ -22,6 +22,7 @@ import { APP_ROUTE_PROVIDER } from './route.provider';
 import { ThemeLeptonXModule } from '@abp/ng.theme.lepton-x';
 import { SideMenuLayoutModule } from '@abp/ng.theme.lepton-x/layouts';
 import { AccountLayoutModule } from '@abp/ng.theme.lepton-x/account';
+import { MaterialModule } from './shared/material.module';
 
 @NgModule({
   imports: [
@@ -31,6 +32,7 @@ import { AccountLayoutModule } from '@abp/ng.theme.lepton-x/account';
     AppRoutingModule,
     CoreModule,
     ThemeSharedModule,
+    MaterialModule,
     
     
     

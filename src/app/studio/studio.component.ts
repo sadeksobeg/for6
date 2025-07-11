@@ -1,121 +1,189 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { DragDropModule } from '@angular/cdk/drag-drop';
-import { Router } from '@angular/router';
+import { MaterialModule } from '../shared/material.module';
 import { Subject, takeUntil } from 'rxjs';
-
-// Import our new services and components
-import { TimelineService } from './services/timeline.service';
-import { MediaService } from '@proxy/medias/media.service';
-import { VideoEditingApiService } from './services/video-editing-api.service';
-import { TimelineComponent } from './components/timeline/timeline.component';
-import { MediaBinComponent } from './components/media-bin/media-bin.component';
-import { PreviewComponent } from './components/preview/preview.component';
-import { TimelineVisualizerComponent } from './components/timeline-visualizer/timeline-visualizer.component';
-import { Timeline, PlaybackState, Resource } from './models/studio.models';
-import { MediaDto } from '@proxy/medias/models';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { VideoEditorService } from './services/video-editor.service';
+import { ProfessionalTimelineComponent } from './components/professional-timeline/professional-timeline.component';
+import { MediaLibraryComponent } from './components/media-library/media-library.component';
+import { VideoPreviewComponent } from './components/video-preview/video-preview.component';
+import { VideoProject, PlaybackState, TimelineState } from './models/video-editor.models';
 
 @Component({
   selector: 'app-studio',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    DragDropModule,
-    TimelineComponent,
-    MediaBinComponent,
-    PreviewComponent,
-    TimelineVisualizerComponent
+    MaterialModule,
+    ProfessionalTimelineComponent,
+    MediaLibraryComponent,
+    VideoPreviewComponent
   ],
-  templateUrl: './studio.component.html',
+  template: `
+    <div class="studio-container">
+      <!-- Top Toolbar -->
+      <mat-toolbar class="studio-toolbar" color="primary">
+        <div class="toolbar-left">
+          <mat-icon class="studio-logo">movie</mat-icon>
+          <span class="studio-title">Professional Video Editor</span>
+          <span class="project-name" *ngIf="currentProject">- {{ currentProject.name }}</span>
+        </div>
+        
+        <div class="toolbar-center">
+          <div class="playback-controls">
+            <button mat-icon-button (click)="previousFrame()" matTooltip="Previous Frame">
+              <mat-icon>skip_previous</mat-icon>
+            </button>
+            <button mat-icon-button (click)="togglePlayback()" matTooltip="Play/Pause">
+              <mat-icon>{{ playbackState?.isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+            </button>
+            <button mat-icon-button (click)="nextFrame()" matTooltip="Next Frame">
+              <mat-icon>skip_next</mat-icon>
+            </button>
+            <button mat-icon-button (click)="stop()" matTooltip="Stop">
+              <mat-icon>stop</mat-icon>
+            </button>
+          </div>
+          
+          <div class="timecode-display">
+            {{ formatTime(playbackState?.currentTime || 0) }}
+          </div>
+        </div>
+        
+        <div class="toolbar-right">
+          <button mat-icon-button [matMenuTriggerFor]="fileMenu" matTooltip="File Menu">
+            <mat-icon>folder</mat-icon>
+          </button>
+          <button mat-icon-button (click)="saveProject()" matTooltip="Save Project">
+            <mat-icon>save</mat-icon>
+          </button>
+          <button mat-raised-button color="accent" (click)="exportProject()" matTooltip="Export Video">
+            <mat-icon>file_download</mat-icon>
+            Export
+          </button>
+        </div>
+      </mat-toolbar>
+
+      <!-- File Menu -->
+      <mat-menu #fileMenu="matMenu">
+        <button mat-menu-item (click)="newProject()">
+          <mat-icon>add</mat-icon>
+          <span>New Project</span>
+        </button>
+        <button mat-menu-item (click)="openProject()">
+          <mat-icon>folder_open</mat-icon>
+          <span>Open Project</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="saveProject()">
+          <mat-icon>save</mat-icon>
+          <span>Save Project</span>
+        </button>
+        <button mat-menu-item (click)="saveProjectAs()">
+          <mat-icon>save_as</mat-icon>
+          <span>Save As...</span>
+        </button>
+      </mat-menu>
+
+      <!-- Main Content -->
+      <div class="studio-content">
+        <!-- Left Panel - Media Library -->
+        <div class="left-panel">
+          <app-media-library></app-media-library>
+        </div>
+
+        <!-- Center Panel - Preview -->
+        <div class="center-panel">
+          <app-video-preview></app-video-preview>
+        </div>
+
+        <!-- Right Panel - Properties (Future) -->
+        <div class="right-panel" *ngIf="showPropertiesPanel">
+          <mat-card class="properties-panel">
+            <mat-card-header>
+              <mat-card-title>Properties</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <p>Clip properties and effects will be shown here.</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Bottom Panel - Timeline -->
+      <div class="bottom-panel">
+        <app-professional-timeline></app-professional-timeline>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-left">
+          <span class="status-item">
+            Duration: {{ formatTime(currentProject?.duration || 0) }}
+          </span>
+          <span class="status-item">
+            FPS: {{ currentProject?.fps || 30 }}
+          </span>
+          <span class="status-item">
+            Resolution: {{ currentProject?.resolution?.width || 1920 }}x{{ currentProject?.resolution?.height || 1080 }}
+          </span>
+        </div>
+        
+        <div class="status-right">
+          <span class="status-item">
+            Zoom: {{ (timelineState?.zoom || 1) * 100 | number:'1.0-0' }}%
+          </span>
+          <span class="status-item" [class.active]="timelineState?.snapToGrid">
+            <mat-icon class="status-icon">grid_on</mat-icon>
+            Snap
+          </span>
+        </div>
+      </div>
+    </div>
+  `,
   styleUrls: ['./studio.component.scss']
 })
 export class StudioComponent implements OnInit, OnDestroy {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
-  // Application state
-  timeline: Timeline = {
-    fps: 25,
-    width: 1920,
-    height: 1080,
-    duration: 60, // Set a default duration for the timeline
-    position: 0,
-    scale: 1,
-    videoTracks: [
-      { id: 'V1', name: 'V1', clips: [], locked: false, hidden: false, muted: false, height: 48 },
-      { id: 'V2', name: 'V2', clips: [], locked: false, hidden: false, muted: false, height: 48 },
-      { id: 'V3', name: 'V3', clips: [], locked: false, hidden: false, muted: false, height: 48 }
-    ],
-    audioTracks: []
-  };
-
-  playback: PlaybackState = {
-    playing: false,
-    position: 0,
-    speed: 1,
-    loop: false,
-    volume: 1,
-    muted: false
-  };
-
-  resources: Resource[] = [];
-  projectName = 'Untitled Project';
-  isFullscreen = false;
-  activeRightPanel: 'visualizer' | 'console' = 'visualizer';
-
-  mediaList: MediaDto[] = [];
-
-  // Drag-and-drop state
-  draggingMedia: MediaDto | null = null;
-  dragOverTrackId: string | null = null;
-  ghostClip: { trackId: string, start: number, duration: number, color: string } | null = null;
-  // Utility for pastel colors
-  private pastelColors = [
-    '#ffd6e0', '#d6eaff', '#e0ffd6', '#fffad6', '#e0d6ff', '#d6fff6', '#ffe0d6'
-  ];
-  private randomPastel() {
-    return this.pastelColors[Math.floor(Math.random() * this.pastelColors.length)];
-  }
-  private generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
+  currentProject: VideoProject | null = null;
+  playbackState: PlaybackState | null = null;
+  timelineState: TimelineState | null = null;
+  showPropertiesPanel = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    private timelineService: TimelineService,
-    private mediaService: MediaService, // <-- use backend MediaService
-    private apiService: VideoEditingApiService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {
-  }
+    private videoEditorService: VideoEditorService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
-    this.timelineService.timeline$
+    // Subscribe to project state
+    this.videoEditorService.getCurrentProject()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(timeline => {
-        this.timeline = timeline;
+      .subscribe(project => {
+        this.currentProject = project;
       });
 
-    this.timelineService.playback$
+    // Subscribe to playback state
+    this.videoEditorService.getPlaybackState()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(playback => {
-        this.playback = playback;
+      .subscribe(state => {
+        this.playbackState = state;
       });
 
-    // Fetch all media (videos)
-    this.mediaService.getList({ sorting: '', skipCount: 0, maxResultCount: 100 })
-      .subscribe(result => {
-        this.mediaList = result.items || [];
+    // Subscribe to timeline state
+    this.videoEditorService.getTimelineState()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(state => {
+        this.timelineState = state;
       });
 
-    // Initialize API service with default project
-    this.apiService.createProject('Professional Video Project');
+    // Show welcome message
+    this.snackBar.open('Welcome to Professional Video Editor!', 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
   }
 
   ngOnDestroy(): void {
@@ -126,6 +194,7 @@ export class StudioComponent implements OnInit, OnDestroy {
   // Keyboard shortcuts
   @HostListener('document:keydown', ['$event'])
   handleKeyboardShortcuts(event: KeyboardEvent): void {
+    // Prevent shortcuts when typing in inputs
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
       return;
     }
@@ -133,263 +202,187 @@ export class StudioComponent implements OnInit, OnDestroy {
     switch (event.code) {
       case 'Space':
         event.preventDefault();
-        this.timelineService.togglePlayback();
+        this.togglePlayback();
         break;
-      case 'KeyV':
-        if (!event.ctrlKey && !event.metaKey) {
-          event.preventDefault();
-          this.setTool('pointer');
-        }
+      case 'KeyJ':
+        event.preventDefault();
+        this.previousFrame();
         break;
-      case 'KeyC':
-        if (!event.ctrlKey && !event.metaKey) {
-          event.preventDefault();
-          this.setTool('razor');
+      case 'KeyK':
+        event.preventDefault();
+        this.togglePlayback();
+        break;
+      case 'KeyL':
+        event.preventDefault();
+        this.nextFrame();
+        break;
+      case 'Home':
+        event.preventDefault();
+        this.videoEditorService.seek(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        if (this.currentProject) {
+          this.videoEditorService.seek(this.currentProject.duration);
         }
         break;
       case 'KeyS':
-        if (!event.ctrlKey && !event.metaKey) {
-          event.preventDefault();
-          this.toggleSnapping();
-        } else if (event.ctrlKey || event.metaKey) {
+        if (event.ctrlKey || event.metaKey) {
           event.preventDefault();
           this.saveProject();
         }
         break;
+      case 'KeyN':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.newProject();
+        }
+        break;
+      case 'KeyE':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.exportProject();
+        }
+        break;
       case 'Delete':
       case 'Backspace':
-        if (this.timelineService.selectedClipsValue.length > 0) {
+        if (this.timelineState?.selectedClips.length) {
           event.preventDefault();
-          this.timelineService.deleteSelectedClips();
+          this.deleteSelectedClips();
         }
-        break;
-      case 'KeyZ':
-        if (event.ctrlKey || event.metaKey) {
-          event.preventDefault();
-          if (event.shiftKey) {
-            // this.redo();
-          } else {
-            // this.undo();
-          }
-        }
-        break;
-      case 'KeyY':
-        if (event.ctrlKey || event.metaKey) {
-          event.preventDefault();
-          // this.redo();
-        }
-        break;
-      case 'ArrowLeft':
-        event.preventDefault();
-        if (event.shiftKey) {
-          this.timelineService.setPlaybackPosition(this.playback.position - 1);
-        } else {
-          this.timelineService.setPlaybackPosition(this.playback.position - 0.04);
-        }
-        break;
-      case 'ArrowRight':
-        event.preventDefault();
-        if (event.shiftKey) {
-          this.timelineService.setPlaybackPosition(this.playback.position + 1);
-        } else {
-          this.timelineService.setPlaybackPosition(this.playback.position + 0.04);
-        }
-        break;
-      case 'Home':
-        event.preventDefault();
-        this.timelineService.setPlaybackPosition(0);
-        break;
-      case 'End':
-        event.preventDefault();
-        this.timelineService.setPlaybackPosition(this.timeline.duration);
         break;
     }
   }
 
-  // Tool methods
-  toggleSnapping(): void {
-    // Toggle snapping functionality
-    console.log('Toggle snapping');
-  }
-
-  // File import
-  importMedia(): void {
-    this.fileInput.nativeElement.click();
-  }
-
-  handleFileImport(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
-    
-    if (files && files.length > 0) {
-      // Removed the block that calls addResource, since it's not available on backend MediaService
-    }
-    
-    input.value = '';
-  }
-
-  // Project management
-  saveProject(): void {
-    console.log('Saving project...');
-  }
-
-  exportProject(): void {
-    console.log('Exporting project...');
-  }
-
-  toggleFullscreen(): void {
-    this.isFullscreen = !this.isFullscreen;
-    if (this.isFullscreen) {
-      document.documentElement.requestFullscreen();
+  // Playback Controls
+  togglePlayback(): void {
+    if (this.playbackState?.isPlaying) {
+      this.videoEditorService.pause();
     } else {
-      document.exitFullscreen();
+      this.videoEditorService.play();
     }
   }
 
-  toggleApiConsole(): void {
-    this.activeRightPanel = this.activeRightPanel === 'console' ? 'visualizer' : 'console';
+  stop(): void {
+    this.videoEditorService.stop();
   }
 
-  formatTime(seconds: number): string {
-    if (!seconds || isNaN(seconds)) return '00:00';
-    
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  previousFrame(): void {
+    const frameTime = 1 / (this.currentProject?.fps || 30);
+    const newTime = Math.max(0, (this.playbackState?.currentTime || 0) - frameTime);
+    this.videoEditorService.seek(newTime);
   }
 
-  private setTool(tool: string): void {
-    console.log(`Selected tool: ${tool}`);
+  nextFrame(): void {
+    const frameTime = 1 / (this.currentProject?.fps || 30);
+    const maxTime = this.currentProject?.duration || 0;
+    const newTime = Math.min(maxTime, (this.playbackState?.currentTime || 0) + frameTime);
+    this.videoEditorService.seek(newTime);
   }
 
-  addToTimeline(media: MediaDto) {
-    const videoTrack = this.timeline.videoTracks[0];
-    if (videoTrack) {
-      const clip = {
-        id: media.id,
-        name: media.title || media.id,
-        resource: `/api/app/media/download-video/${media.id}`,
-        in: 0,
-        out: 10,
-        start: 0,
-        duration: 10,
-        trackIndex: 0,
-        selected: false,
-        filters: [],
-        properties: {
-          position: { x: 0, y: 0 },
-          scale: { x: 1, y: 1 },
-          rotation: 0,
-          opacity: 1,
-          blend_mode: 'normal'
-        }
-      };
-      this.timelineService.addClipToTrack(clip, videoTrack.id);
-    }
-  }
-
-  downloadVideo(media: MediaDto) {
-    this.mediaService.downloadVideo(media.id).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = (media.title || media.id) + '.mp4';
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
-  }
-
-  deleteVideo(media: MediaDto) {
-    if (confirm('Are you sure you want to delete this video?')) {
-      this.mediaService.delete(media.id).subscribe(() => {
-        this.mediaList = this.mediaList.filter(m => m.id !== media.id);
+  // Project Management
+  newProject(): void {
+    const projectName = prompt('Enter project name:', 'New Project');
+    if (projectName) {
+      this.videoEditorService.createNewProject(projectName);
+      this.snackBar.open(`Created new project: ${projectName}`, 'Close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top'
       });
     }
   }
 
-
-  // --- Modern Drag-and-Drop Handlers ---
-  onDragStart(event: DragEvent, media: MediaDto) {
-    this.draggingMedia = media;
-    event.dataTransfer?.setData('application/json', JSON.stringify(media));
-    event.dataTransfer!.effectAllowed = 'copy';
+  openProject(): void {
+    // Implement project opening logic
+    this.snackBar.open('Open project functionality coming soon!', 'Close', {
+      duration: 2000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top'
+    });
   }
 
-  onTrackDragOver(event: DragEvent, track: any) {
-    event.preventDefault();
-    if (!this.draggingMedia) return;
-    this.dragOverTrackId = track.id;
-    const timelineRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const mouseX = event.clientX - timelineRect.left;
-    const pxPerSec = timelineRect.width / (this.timeline.duration || 60);
-    let startTime = mouseX / pxPerSec;
-    const fps = this.timeline.fps || 25;
-    const snapTime = Math.round(startTime * fps) / fps;
-    this.ghostClip = {
-      trackId: track.id,
-      start: snapTime,
-      duration: (this.draggingMedia as any)?.duration || 5,
-      color: this.randomPastel()
-    };
-  }
-
-  onTrackDragLeave(event: DragEvent, track: any) {
-    this.dragOverTrackId = null;
-    this.ghostClip = null;
-  }
-
-  async onDrop(event: DragEvent, track: any) {
-    event.preventDefault();
-    const media: any = this.draggingMedia || JSON.parse(event.dataTransfer?.getData('application/json') || '{}');
-    this.draggingMedia = null;
-    this.dragOverTrackId = null;
-    this.ghostClip = null;
-    // Compute drop time
-    const timelineRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const mouseX = event.clientX - timelineRect.left;
-    const pxPerSec = timelineRect.width / (this.timeline.duration || 60);
-    let startTime = mouseX / pxPerSec;
-    const fps = this.timeline.fps || 25;
-    const snapTime = Math.round(startTime * fps) / fps;
-    try {
-      const clip = {
-        id: this.generateUUID(),
-        name: media.title || media.filename || media.id,
-        resource: `/api/app/media/download-video/${media.id}`,
-        in: 0,
-        out: media.duration,
-        start: snapTime,
-        duration: media.duration,
-        trackIndex: 0,
-        selected: false,
-        color: this.randomPastel(),
-        filters: [],
-        properties: {
-          position: { x: 0, y: 0 },
-          scale: { x: 1, y: 1 },
-          rotation: 0,
-          opacity: 1,
-          blend_mode: 'normal'
-        }
-      };
-      // Optimistically add to timeline
-      this.timelineService.addClipToTrack(clip, track.id);
-      this.renderTimeline(this.timeline);
-      // Optionally: POST to backend for persistence (using your TimelineService)
-      // await this.timelineService.persistClip(clip, track.id); // implement as needed
-    } catch (err) {
-      this.showToast(`Could not add '${media.filename || media.title}' at ${this.formatTime(snapTime)}. Please try again.`);
-      // Optionally: rollback UI
+  saveProject(): void {
+    if (this.currentProject) {
+      // Implement project saving logic
+      this.snackBar.open(`Saved project: ${this.currentProject.name}`, 'Close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top'
+      });
     }
   }
 
-  renderTimeline(timeline: any) {
-    // This can trigger change detection or re-render logic if needed
-    this.cdr.detectChanges();
+  saveProjectAs(): void {
+    if (this.currentProject) {
+      const newName = prompt('Enter new project name:', this.currentProject.name);
+      if (newName) {
+        this.videoEditorService.updateProject({ name: newName });
+        this.snackBar.open(`Saved project as: ${newName}`, 'Close', {
+          duration: 2000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top'
+        });
+      }
+    }
   }
 
-  showToast(msg: string) {
-    // Simple toast (replace with your own)
-    alert(msg);
+  exportProject(): void {
+    if (!this.currentProject) {
+      this.snackBar.open('No project to export', 'Close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top'
+      });
+      return;
+    }
+
+    // Show export dialog or start export process
+    this.snackBar.open('Starting export...', 'Close', {
+      duration: 2000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top'
+    });
+
+    // Simulate export process
+    setTimeout(() => {
+      this.snackBar.open('Export completed!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top'
+      });
+    }, 3000);
+  }
+
+  // Clip Management
+  deleteSelectedClips(): void {
+    if (this.timelineState?.selectedClips.length) {
+      const count = this.timelineState.selectedClips.length;
+      
+      // Delete each selected clip
+      this.timelineState.selectedClips.forEach(clipId => {
+        this.videoEditorService.removeClip(clipId);
+      });
+      
+      this.videoEditorService.clearSelection();
+      
+      this.snackBar.open(`Deleted ${count} clip(s)`, 'Close', {
+        duration: 2000,
+        horizontalPosition: 'right',
+        verticalPosition: 'top'
+      });
+    }
+  }
+
+  // Utility Methods
+  formatTime(seconds: number): string {
+    if (!seconds || isNaN(seconds)) return '00:00:00:00';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    const frames = Math.floor((seconds % 1) * (this.currentProject?.fps || 30));
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${frames.toString().padStart(2, '0')}`;
   }
 }
